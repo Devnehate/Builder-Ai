@@ -22,9 +22,9 @@ export function GuestLayout() {
     if (loadingUser) { 
         return <Loading />
     }
-    if (user) { 
-        return <Navigate to="/" replace /> 
-    }
+    // if (user) { 
+    //     return <Navigate to="/" replace /> 
+    // }
 
     return <Outlet />
 }
