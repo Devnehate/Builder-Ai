@@ -4,9 +4,12 @@ import Authpage from './pages/Authpage'
 import Homepage from './pages/Homepage'
 import Builderpage from './pages/Builderpage'
 import Previewpage from './pages/Previewpage'
+import { Toaster } from 'react-hot-toast'
 
 const App = () => {
   return (
+    <>
+      <Toaster />
     <Routes>
       <Route element={<GuestLayout />}>
         <Route path='/login' element={<Authpage mode="login" />} />
@@ -17,11 +20,9 @@ const App = () => {
         <Route path='/builder/:id' element={<Builderpage />} />
         <Route path='/preview/:id' element={<Previewpage />} />
       </Route>
-
         <Route path='*' element={<Navigate to="/" replace />} />
-      
-
-    </Routes>
+      </Routes>
+      </>
   )
 }
 
