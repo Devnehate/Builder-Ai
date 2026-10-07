@@ -1,7 +1,8 @@
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import api from "../api/api";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import debounce from "lodash.debounce";
 
 
 const AppContext = createContext(undefined);
@@ -34,11 +35,11 @@ export function AppContextProvider({ children }) {
 
     useEffect(() => {
         checkSession();
-    }, [checkSession]);
+    }, []);
 
-    const login = async (email,password) => {
+    const login = async (email, password) => {
         try {
-            const {data} = await api.post('/api/auth/login', {email,password});
+            const { data } = await api.post('/api/auth/login', { email, password });
             setUser(data.user);
             toast.success("Welcome back!");
             navigate('/');
@@ -50,9 +51,9 @@ export function AppContextProvider({ children }) {
         }
     }
 
-    const register = async (name,email,password) => {
+    const register = async (name, email, password) => {
         try {
-            const {data} = await api.post('/api/auth/register', {name,email,password});
+            const { data } = await api.post('/api/auth/register', { name, email, password });
             setUser(data.user);
             toast.success("Account created successfully!");
             navigate('/');
@@ -64,7 +65,7 @@ export function AppContextProvider({ children }) {
         }
     }
 
-    const logout = async () => { 
+    const logout = async () => {
         try {
             await api.post('/api/auth/logout');
             setUser(null);
@@ -78,10 +79,10 @@ export function AppContextProvider({ children }) {
         }
     }
 
-    const loadProjects = async () => { 
+    const loadProjects = async () => {
         if (!user) return;
         try {
-            const {data} = await api.get('/api/projects');
+            const { data } = await api.get('/api/projects');
             setProjects(data);
         } catch (error) {
             console.error("Failed to load projects", error);
@@ -91,24 +92,24 @@ export function AppContextProvider({ children }) {
         }
     }
 
-    const loadProject = async (id, silent = false) => { 
+    const loadProject = async (id, silent = false) => {
         if (!user) return;
         if (!silent) setLoadingActiveProjects(true);
         try {
-            const {data} = await api.get(`/api/projects/${id}`);
+            const { data } = await api.get(`/api/projects/${id}`);
             setActiveProjects(data);
 
             const files = Object.keys(data.files);
             if (files.length > 0) {
                 setActiveFile((prev) => {
                     if (files.includes(prev)) return prev;
-                    if(files.includes("/App.js")) return "/App.js";
+                    if (files.includes("/App.js")) return "/App.js";
                     return files[0];
                 });
             }
         } catch (error) {
             console.error("Failed to load project", error);
-            if (!silent){
+            if (!silent) {
                 toast.error("Failed to load project. Please try again.");
                 navigate('/');
             }
@@ -120,7 +121,7 @@ export function AppContextProvider({ children }) {
     useEffect(() => {
         if (!activeProjects?._id || !user) return;
         const isOnGoing = activeProjects?.status === "generating" || activeProjects?.status === "pending" || activeProjects?.status === "revising";
-        if (isOnGoing) { 
+        if (isOnGoing) {
             setChatLoading(true);
             const interval = setInterval(() => {
                 loadProject(activeProjects._id, true);
@@ -145,7 +146,7 @@ export function AppContextProvider({ children }) {
             } finally {
                 setGeneratingProjects(false);
             }
-        },[navigate, user]
+        }, [navigate, user]
     )
 
     const handleDelete = useCallback(
@@ -159,8 +160,55 @@ export function AppContextProvider({ children }) {
                 console.error("Failed to delete project", error);
                 toast.error("Failed to delete project. Please try again.");
             }
-        },[user]
+        }, [user]
     )
+
+    const handleChat = useCallback(
+        async (prompt) => {
+            if (!user || !activeProjects) return;
+            setChatLoading(true);
+            try {
+                const { data } = await api.post(`/api/projects/${activeProjects._id}/chat`, { prompt });
+                setActiveProjects(data);
+                if (data.error && data.error.length > 0) {
+                    toast.error(`${data.error.length} revision patch(es) failed`);
+                }
+                else {
+                    toast.success(`Updated to version ${data.version}`);
+                }
+            } catch (error) {
+                console.error("Revision request failed", error);
+                toast.error(error?.response?.data?.error || "Revision request failed. Please try again.");
+            } finally {
+                setChatLoading(false);
+            }
+        }, [activeProjects, user]
+    )
+
+    const debounceSave = React.useMemo(
+        () => debounce(async (id, files) => {
+            try {
+                await api.put(`/api/projects/${id}/files`, { files });
+            } catch (error) {
+                console.error("Failed to save project files", error);
+                toast.error("Failed to save project files. Please try again.");
+            }
+        }, 1000), [],
+    );
+
+    useEffect(() => {
+        return () => {
+            debounceSave.cancel();
+        }
+    }, [debounceSave]);
+
+    const updateProjectFiles = useCallback(
+        async (files) => {
+            if (!activeProjects || !user) return;
+            debounceSave(activeProjects._id, files);
+        },
+        [activeProjects, user, debounceSave]
+    );
 
     return (
         <AppContext.Provider value={{
@@ -182,7 +230,8 @@ export function AppContextProvider({ children }) {
             loadProject,
             handleGenerate,
             handleDelete,
-            
+            logout,
+            updateProjectFiles,
         }}>
             {children}
         </AppContext.Provider>

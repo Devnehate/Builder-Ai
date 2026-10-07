@@ -5,6 +5,7 @@ import Homepage from './pages/Homepage'
 import Builderpage from './pages/Builderpage'
 import Previewpage from './pages/Previewpage'
 import { Toaster } from 'react-hot-toast'
+import Publishpage from './pages/Publishpage'
 
 const App = () => {
   return (
@@ -14,12 +15,16 @@ const App = () => {
       <Route element={<GuestLayout />}>
         <Route path='/login' element={<Authpage mode="login" />} />
         <Route path='/register' element={<Authpage mode="register" />} />
-      </Route>
+        </Route>
+        
       <Route element={<AuthLayout />}>
         <Route path='/' element={<Homepage />} />
         <Route path='/builder/:id' element={<Builderpage />} />
         <Route path='/preview/:id' element={<Previewpage />} />
-      </Route>
+        </Route>
+        
+        <Route path='/publish/:id' element={<Publishpage />} />
+
         <Route path='*' element={<Navigate to="/" replace />} />
       </Routes>
       </>
