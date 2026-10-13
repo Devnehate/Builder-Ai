@@ -56,11 +56,11 @@ const Promptinput = ({ onSubmit, loading = false, placeholder = "Describe the we
     }
 
   return (
-      <div className={`bg-white border border-zinc-200 rounded-xl flex items-end gap-2 focus-within:ring-1 focus-within:ring-zinc-300 transition ${large ? "p-4" : "p-3"}`}>
+      <div className={`bg-white border border-zinc-300 rounded-xl flex items-end gap-2 focus-within:ring-1 focus-within:ring-zinc-300 transition ${large ? "p-4" : "p-3"}`}>
           
-          <textarea ref={textareaRef} value={value} onChange={(e) => setValue(e.target.value)} onKeyDown={handleKeyDown} placeholder={placeholder} disabled={loading} rows={large ? 5 : 1} className={`flex-1 bg-transparent border-none outline-none resize-none text-zinc-900 placeholder:text-zinc-400 ${large ? "text-base" : "text-sm"}`} />
+          <textarea ref={textareaRef} value={value} onChange={(e) => setValue(e.target.value)} onKeyDown={handleKeyDown} placeholder={placeholder} disabled={loading} rows={large ? 5 : 1} className={`flex-1 bg-transparent border-none outline-none resize-none text-zinc-900 placeholder:text-zinc-600 ${large ? "text-base" : "text-sm"}`} />
           
-          <button onClick={() => handleSubmit()} disabled={!value.trim() || loading} className="inline-flex items-center justify-center bg-zinc-950 text-white hover:bg-zinc-800 disabled:opacity-40 cursor-pointer rounded-full shrink-0" style={{width : large ? 36 : 24, height : large ? 36 : 24}}>
+          <button onClick={() => handleSubmit()} disabled={!value.trim() || loading} className="inline-flex items-center justify-center bg-zinc-950 text-white hover:bg-zinc-800 disabled:opacity-60 cursor-pointer rounded-full shrink-0" style={{width : large ? 36 : 24, height : large ? 36 : 24}}>
               {loading ? <Loader2Icon size={large ? 20 : 15} className='animate-spin' /> : <ArrowRightIcon size={large ? 20 : 15} />}
           </button>
           
